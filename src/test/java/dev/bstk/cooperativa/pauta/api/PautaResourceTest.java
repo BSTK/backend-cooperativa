@@ -11,6 +11,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.UUID;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,7 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class PautaResourceTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String ENDPOINT_CADASTRAR_NOVO_PAUTA = "/v1/api/pautas";
+    private static final String ENDPOINT_CADASTRAR_NOVA_PAUTA = "/v1/api/pautas";
+    private static final String ENDPOINT_INICIAR_SESSAO_VOTACAO = "/v1/api/pautas/{pautaId}/iniciar-sessao-votacao/{tempoDuracao}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -36,7 +39,7 @@ class PautaResourceTest {
                 .build();
 
         mockMvc.perform(
-           post(ENDPOINT_CADASTRAR_NOVO_PAUTA)
+           post(ENDPOINT_CADASTRAR_NOVA_PAUTA)
               .contentType(MediaType.APPLICATION_JSON)
               .content(MAPPER.writeValueAsString(request))
            )
@@ -47,5 +50,19 @@ class PautaResourceTest {
            .andExpect(jsonPath("$.titulo").value(request.getTitulo()))
            .andExpect(jsonPath("$.descricao").isNotEmpty())
            .andExpect(jsonPath("$.descricao").value(request.getDescricao()));
+    }
+
+    @Test
+    @DisplayName("[ POST ] - Deve iniciar uma sessão de votacao para uma pauta já cadastrada")
+    void t2() throws Exception {
+        mockMvc.perform(
+          post(ENDPOINT_INICIAR_SESSAO_VOTACAO, UUID.randomUUID().toString(), "3")
+        )
+        .andExpect(status().isOk())
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.uuid").isNotEmpty())
+        .andExpect(jsonPath("$.pauta.uuid").isNotEmpty())
+        .andExpect(jsonPath("$.dataHoraInicio").isNotEmpty())
+        .andExpect(jsonPath("$.dataHoraTermino").isNotEmpty());
     }
 }
