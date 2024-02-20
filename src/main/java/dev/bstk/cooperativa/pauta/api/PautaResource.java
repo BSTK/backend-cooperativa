@@ -47,7 +47,7 @@ public class PautaResource {
     @PostMapping("/{pautaId}/votar")
     public ResponseEntity<Void> votarPauta(@PathVariable("pautaId") final UUID pautaId,
                                            @RequestBody final PautaVotoRequest request) {
-        log.info("Votacao - Pauta: [ {} ], Associado: [ {} ], Voto: [ {} ]", pautaId, request.getVoto(), request.getAssociadoId());
+        log.info("Votacao - Pauta: [ {} ], Associado: [ {} ], Voto: [ {} ]", pautaId, request.getAssociadoId(), request.getVoto());
         return ResponseEntity.noContent().build();
     }
 }
