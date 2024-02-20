@@ -1,15 +1,29 @@
 package dev.bstk.cooperativa.pauta.service;
 
 import dev.bstk.cooperativa.pauta.model.Pauta;
+import dev.bstk.cooperativa.pauta.model.SessaoVotacao;
+import dev.bstk.cooperativa.pauta.model.Status;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
+import dev.bstk.cooperativa.pauta.repository.SessaoVotacaoRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.converter.ArgumentConversionException;
+import org.junit.jupiter.params.converter.ConvertWith;
+import org.junit.jupiter.params.converter.DefaultArgumentConverter;
+import org.junit.jupiter.params.converter.SimpleArgumentConverter;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.Duration;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 class PautaServiceTest {
@@ -19,6 +33,12 @@ class PautaServiceTest {
 
     @Mock
     private PautaRepository pautaRepository;
+
+    @Mock
+    private SessaoVotacaoRepository sessaoVotacaoRepository;
+
+    @Captor
+    private ArgumentCaptor<SessaoVotacao> sessaoVotacaoCaptor;
 
     @Test
     @DisplayName("Deve cadastrar uma nova pauta")
@@ -50,5 +70,85 @@ class PautaServiceTest {
 
         Mockito.verify(pautaRepository, Mockito.times(1)).existePautaJaCadastrada(Mockito.anyString());
         Mockito.verify(pautaRepository, Mockito.never()).save(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar expception quando tentar inciar uma nova sessão sem uma pauta cadastrada")
+    void t3() {
+        Mockito.when(pautaRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+
+        final Long pautaId = 1L;
+        Assertions
+            .assertThatThrownBy(() -> pautaService.iniciarSessaoVotacao(pautaId, 2L))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
+    }
+
+    @Test
+    @DisplayName("Deve lançar expception quando tentar inciar uma nova sessão de uma pauta já encerrada")
+    void t4() {
+        final var pautaEncerrada = Pauta.builder().status(Status.PautaStatus.ENCERRADA).build();
+        Mockito.when(pautaRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(pautaEncerrada));
+
+        final Long pautaId = 1L;
+        Assertions
+            .assertThatThrownBy(() -> pautaService.iniciarSessaoVotacao(pautaId, 2L))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(String.format("Está pauta já está encerrada [ id: %s ]!", pautaId));
+    }
+
+    @Test
+    @DisplayName("Deve lançar expception quando tentar inciar uma nova sessão de uma pauta já em votação")
+    void t5() {
+        final var pautaCriada = Pauta.builder().status(Status.PautaStatus.CRIADA).build();
+        Mockito.when(pautaRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(pautaCriada));
+        Mockito.when(sessaoVotacaoRepository.pautaEstaEmVotacao(Mockito.anyLong())).thenReturn(true);
+
+        final Long pautaId = 1L;
+        Assertions
+            .assertThatThrownBy(() -> pautaService.iniciarSessaoVotacao(pautaId, 2L))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(String.format("Está pauta já está em votação [ id: %s ]!", pautaId));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"null, 1", "0, 1", "2, 2"})
+    @DisplayName("Deve inciar uma nova sessão de votação com tempo de duração válido")
+    void t6(@ConvertWith(ParameterizedTestNullConverter.class) final Long tempoDuracao,
+                                                               final Long duracaoEmMinutos) {
+
+        final var pautaCriada = Pauta.builder().status(Status.PautaStatus.CRIADA).build();
+        final var sessaoVotacaoSalva = SessaoVotacao.builder().pauta(pautaCriada).build();
+
+        Mockito.when(pautaRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(pautaCriada));
+        Mockito.when(sessaoVotacaoRepository.pautaEstaEmVotacao(Mockito.anyLong())).thenReturn(false);
+        Mockito.when(sessaoVotacaoRepository.save(Mockito.any())).thenReturn(sessaoVotacaoSalva);
+
+        final var sessaoVotacaoCriada = pautaService.iniciarSessaoVotacao(1L, tempoDuracao);
+        Assertions.assertThat(sessaoVotacaoCriada).isNotNull();
+        Assertions.assertThat(sessaoVotacaoCriada.getPauta()).isNotNull();
+
+        Mockito.verify(sessaoVotacaoRepository).save(sessaoVotacaoCaptor.capture());
+
+        final var sessaoVotacaoIniciada = sessaoVotacaoCaptor.getValue();
+        Assertions.assertThat(sessaoVotacaoIniciada.getStatus()).isEqualTo(Status.SessaoVotacaoStatus.INICIADA);
+        Assertions.assertThat(sessaoVotacaoIniciada.getPauta().getStatus()).isEqualTo(Status.PautaStatus.EM_VOTACAO);
+
+        final var duracaoEmMinutosCalculada = Duration
+                .between(sessaoVotacaoIniciada.getDataHoraInicio(), sessaoVotacaoIniciada.getDataHoraTermino())
+                .toMinutes();
+
+        Assertions.assertThat(duracaoEmMinutosCalculada).isEqualTo(duracaoEmMinutos);
+    }
+
+    private static class ParameterizedTestNullConverter extends SimpleArgumentConverter {
+        @Override
+        protected Object convert(Object object, Class<?> clazz) throws ArgumentConversionException {
+            if ("null".equals(object)) {
+                return null;
+            }
+
+            return DefaultArgumentConverter.INSTANCE.convert(object, clazz);
+        }
     }
 }

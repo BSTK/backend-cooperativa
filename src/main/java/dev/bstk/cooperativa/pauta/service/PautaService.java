@@ -56,6 +56,7 @@ public class PautaService {
 
         final var novaSessaoVotacaoIniciada = SessaoVotacao.builder()
                 .pauta(pauta)
+                .status(Status.SessaoVotacaoStatus.INICIADA)
                 .dataHoraInicio(dataHoraInicio)
                 .dataHoraTermino(dataHoraTermino)
                 .build();

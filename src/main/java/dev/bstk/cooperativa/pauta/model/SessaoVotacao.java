@@ -55,11 +55,6 @@ public class SessaoVotacao implements Serializable {
     @Column(name = "DATA_HORA_FIM")
     private LocalDateTime dataHoraTermino;
 
-    @PrePersist
-    private void prePersist() {
-        setStatus(Status.SessaoVotacaoStatus.INICIADA);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
