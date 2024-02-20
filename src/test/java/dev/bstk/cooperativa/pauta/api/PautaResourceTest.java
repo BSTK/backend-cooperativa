@@ -3,13 +3,17 @@ package dev.bstk.cooperativa.pauta.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
 import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
+import dev.bstk.cooperativa.pauta.model.Pauta;
+import dev.bstk.cooperativa.pauta.service.PautaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,14 +37,17 @@ class PautaResourceTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private PautaService pautaService;
+
+
     @Test
     @DisplayName("Deve cadastrar uma nova pauta")
     void t1() throws Exception {
-        final var request = PautaRequest
-                .builder()
-                .titulo("Titulo AAAA")
-                .descricao("Descricao AAAA")
-                .build();
+        final var request = PautaRequest.builder().titulo("Titulo AAAA").build();
+        final var pautacadastrada = Pauta.builder().id(1L).titulo(request.getTitulo()).build();
+
+        Mockito.when(pautaService.cadastrarNovaPauta(Mockito.any())).thenReturn(pautacadastrada);
 
         mockMvc.perform(
            post(ENDPOINT_CADASTRAR_NOVA_PAUTA)
@@ -49,11 +56,9 @@ class PautaResourceTest {
            )
            .andExpect(status().isOk())
            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-           .andExpect(jsonPath("$.uuid").isNotEmpty())
+           .andExpect(jsonPath("$.id").isNotEmpty())
            .andExpect(jsonPath("$.titulo").isNotEmpty())
-           .andExpect(jsonPath("$.titulo").value(request.getTitulo()))
-           .andExpect(jsonPath("$.descricao").isNotEmpty())
-           .andExpect(jsonPath("$.descricao").value(request.getDescricao()));
+           .andExpect(jsonPath("$.titulo").value(request.getTitulo()));
     }
 
     @Test

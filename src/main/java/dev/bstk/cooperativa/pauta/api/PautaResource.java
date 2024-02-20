@@ -5,6 +5,10 @@ import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.api.response.PautaResponse;
 import dev.bstk.cooperativa.pauta.api.response.SessaoVotacaoResponse;
 import dev.bstk.cooperativa.pauta.api.response.SessaoVotacaoResponse.SessaoVotacaoPauta;
+import dev.bstk.cooperativa.pauta.helper.Mapper;
+import dev.bstk.cooperativa.pauta.model.Pauta;
+import dev.bstk.cooperativa.pauta.service.PautaService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,23 +23,19 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/v1/api/pautas")
 public class PautaResource {
 
+    private final PautaService pautaService;
 
     @PostMapping
     public ResponseEntity<PautaResponse> cadastrarNovaPauta(@RequestBody final PautaRequest request) {
-        log.info("Cadastrando uma nova Pauta - [ {} ]", request.getTitulo());
+        final var novaPauta = Mapper.to(request, Pauta.class);
+        final var novaPautaCadastrada = pautaService.cadastrarNovaPauta(novaPauta);
+        final var novaPautaCadastradaResponse = Mapper.to(novaPautaCadastrada, PautaResponse.class);
 
-        /// TODO - CHAMAR SERVICE PARA CADASTRAR NOVA PAUTA
-        final var response = PautaResponse
-                .builder()
-                .uuid(UUID.randomUUID())
-                .titulo(request.getTitulo())
-                .descricao(request.getDescricao())
-                .build();
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(novaPautaCadastradaResponse);
     }
 
     @PostMapping("/{pautaId}/iniciar-sessao-votacao/{tempoDuracao}")

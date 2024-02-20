@@ -1,6 +1,9 @@
 package dev.bstk.cooperativa.pauta.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -17,6 +20,9 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "PAUTA")
 public class Pauta implements Serializable {
 
