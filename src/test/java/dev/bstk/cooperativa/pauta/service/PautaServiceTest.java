@@ -3,8 +3,10 @@ package dev.bstk.cooperativa.pauta.service;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.SessaoVotacao;
 import dev.bstk.cooperativa.pauta.model.Status;
+import dev.bstk.cooperativa.pauta.model.Votacao;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
 import dev.bstk.cooperativa.pauta.repository.SessaoVotacaoRepository;
+import dev.bstk.cooperativa.pauta.repository.VotacaoRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +17,7 @@ import org.junit.jupiter.params.converter.ConvertWith;
 import org.junit.jupiter.params.converter.DefaultArgumentConverter;
 import org.junit.jupiter.params.converter.SimpleArgumentConverter;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -33,6 +36,9 @@ class PautaServiceTest {
 
     @Mock
     private PautaRepository pautaRepository;
+
+    @Mock
+    private VotacaoRepository votacaoRepository;
 
     @Mock
     private SessaoVotacaoRepository sessaoVotacaoRepository;
@@ -139,6 +145,55 @@ class PautaServiceTest {
                 .toMinutes();
 
         Assertions.assertThat(duracaoEmMinutosCalculada).isEqualTo(duracaoEmMinutos);
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = { true, false })
+    @DisplayName("Deve computar um voto para uma pauta e sessão válida")
+    void t7(final Boolean votoInformado) {
+        Mockito.when(sessaoVotacaoRepository.pautaNaoEstaEmVotacao(Mockito.anyLong())).thenReturn(false);
+        Mockito.when(votacaoRepository.associadoJaVotou(Mockito.anyLong())).thenReturn(false);
+
+        final var voto = Votacao.builder().voto(votoInformado).associadoId(1L).build();
+        pautaService.votar(1L, voto);
+
+        Mockito.verify(sessaoVotacaoRepository, Mockito.times(1)).pautaNaoEstaEmVotacao(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.times(1)).associadoJaVotou(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.times(1)).saveAndFlush(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar expception quando tentar votar para uma sessão não iniciada.")
+    void t8() {
+        Mockito.when(sessaoVotacaoRepository.pautaNaoEstaEmVotacao(Mockito.anyLong())).thenReturn(true);
+
+        final Long pautaId = 1L;
+        Assertions
+           .assertThatThrownBy(() -> pautaService.votar(pautaId, null))
+           .isInstanceOf(IllegalArgumentException.class)
+           .hasMessage(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
+
+        Mockito.verify(sessaoVotacaoRepository, Mockito.times(1)).pautaNaoEstaEmVotacao(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.never()).associadoJaVotou(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.never()).saveAndFlush(Mockito.any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar expception ao votar mais de uma vez para o mesmo associado")
+    void t9() {
+        Mockito.when(sessaoVotacaoRepository.pautaNaoEstaEmVotacao(Mockito.anyLong())).thenReturn(false);
+        Mockito.when(votacaoRepository.associadoJaVotou(Mockito.anyLong())).thenReturn(true);
+
+        final Long pautaId = 1L;
+        final var voto = Votacao.builder().associadoId(1L).build();
+        Assertions
+                .assertThatThrownBy(() -> pautaService.votar(pautaId, voto))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Associado Já votou. Permitido apenas um voto por associado!");
+
+        Mockito.verify(sessaoVotacaoRepository, Mockito.times(1)).pautaNaoEstaEmVotacao(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.times(1)).associadoJaVotou(Mockito.anyLong());
+        Mockito.verify(votacaoRepository, Mockito.never()).saveAndFlush(Mockito.any());
     }
 
     private static class ParameterizedTestNullConverter extends SimpleArgumentConverter {

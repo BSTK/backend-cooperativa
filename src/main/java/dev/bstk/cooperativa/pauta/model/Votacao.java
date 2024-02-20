@@ -1,6 +1,7 @@
 package dev.bstk.cooperativa.pauta.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,8 +11,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinTable;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -20,6 +19,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "VOTACAO")
@@ -31,9 +31,8 @@ public class Votacao implements Serializable {
     private Long id;
 
     @NotNull
-    @OneToOne
-    @JoinTable(name = "ASSOCIADO")
-    private Associado associado;
+    @Column(name = "ASSOCIADO_ID")
+    private Long associadoId;
 
     @NotNull
     @Column(name = "VOTO")
@@ -43,8 +42,8 @@ public class Votacao implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Votacao voto = (Votacao) o;
-        return id.equals(voto.id);
+        Votacao votacao = (Votacao) o;
+        return id.equals(votacao.id);
     }
 
     @Override

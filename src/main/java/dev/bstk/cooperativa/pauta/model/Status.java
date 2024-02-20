@@ -1,14 +1,14 @@
 package dev.bstk.cooperativa.pauta.model;
 
-public abstract class Status {
+public interface Status {
 
-    public enum PautaStatus {
+    enum PautaStatus {
         CRIADA,
         EM_VOTACAO,
         ENCERRADA
     }
 
-    public enum SessaoVotacaoStatus {
+    enum SessaoVotacaoStatus {
         INICIADA,
         ENCERRADA
     }

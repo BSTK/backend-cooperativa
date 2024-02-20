@@ -3,8 +3,10 @@ package dev.bstk.cooperativa.pauta.service;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.SessaoVotacao;
 import dev.bstk.cooperativa.pauta.model.Status;
+import dev.bstk.cooperativa.pauta.model.Votacao;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
 import dev.bstk.cooperativa.pauta.repository.SessaoVotacaoRepository;
+import dev.bstk.cooperativa.pauta.repository.VotacaoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,7 @@ public class PautaService {
     private static final long TEMPO_DEFAULT_DURACAO_SESSAO_EM_MINUTOS = 1;
 
     private final PautaRepository pautaRepository;
+    private final VotacaoRepository votacaoRepository;
     private final SessaoVotacaoRepository sessaoVotacaoRepository;
 
 
@@ -62,5 +65,25 @@ public class PautaService {
                 .build();
 
         return sessaoVotacaoRepository.save(novaSessaoVotacaoIniciada);
+    }
+
+    public void votar(final Long pautaId, final Votacao votacao) {
+        final var pautaNaoEstaEmVotacao = sessaoVotacaoRepository.pautaNaoEstaEmVotacao(pautaId);
+        if (pautaNaoEstaEmVotacao) {
+            throw new IllegalArgumentException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
+        }
+
+        final var associadoJaVotou = votacaoRepository.associadoJaVotou(votacao.getAssociadoId());
+        if (associadoJaVotou) {
+            throw new IllegalArgumentException("Associado Já votou. Permitido apenas um voto por associado!");
+        }
+
+        final var votoComputado = Votacao
+                .builder()
+                .voto(votacao.getVoto())
+                .associadoId(votacao.getAssociadoId())
+                .build();
+
+        votacaoRepository.saveAndFlush(votoComputado);
     }
 }
