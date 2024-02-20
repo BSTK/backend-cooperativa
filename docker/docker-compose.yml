@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+
+  # ProtgreSql
+  postgresql:
+    image: "postgres:14.1"
+    ports:
+      - "5432:5432"
+    networks:
+      - backend-cooperativa
+    volumes:
+      - ./sql/iniciar-banco-dados.sql:/docker-entrypoint-initdb.d/iniciar-banco-dados.sql
+    environment:
+      - "POSTGRES_DB=backend-cooperativa-db"
+      - "POSTGRES_USER=backend-cooperativa-db"
+      - "POSTGRES_PASSWORD=backend-cooperativa-db"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U backend-cooperativa-db"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+
+networks:
+  backend-cooperativa:
+    driver: bridge
