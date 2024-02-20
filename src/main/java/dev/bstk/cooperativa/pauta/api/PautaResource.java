@@ -1,11 +1,11 @@
 package dev.bstk.cooperativa.pauta.api;
 
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
+import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.api.response.PautaResponse;
 import dev.bstk.cooperativa.pauta.api.response.SessaoVotacaoResponse;
 import dev.bstk.cooperativa.pauta.api.response.SessaoVotacaoResponse.SessaoVotacaoPauta;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,5 +58,12 @@ public class PautaResource {
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{pautaId}/votar")
+    public ResponseEntity<Void> votarPauta(@PathVariable("pautaId") final UUID pautaId,
+                                           @RequestBody final PautaVotoRequest request) {
+        log.info("Votacao - Pauta: [ {} ], Associado: [ {} ], Voto: [ {} ]", pautaId, request.getVoto(), request.getAssociadoId());
+        return ResponseEntity.noContent().build();
     }
 }
