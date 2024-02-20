@@ -3,25 +3,22 @@ package dev.bstk.cooperativa.pauta.api.response;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class SessaoVotacaoResponse {
 
-    private final UUID uuid;
-    private final SessaoVotacaoPauta pauta;
-    private final LocalDateTime dataHoraInicio;
-    private final LocalDateTime dataHoraTermino;
+    private Long id;
 
-    @Data
-    @Builder
-    @AllArgsConstructor
-    public static class SessaoVotacaoPauta {
-        private final UUID uuid;
-        private final String titulo;
-    }
+    @DateTimeFormat(pattern = "dd/MM/yy hh:mm:ss")
+    private LocalDateTime dataHoraInicio;
+
+    @DateTimeFormat(pattern = "dd/MM/yy hh:mm:ss")
+    private LocalDateTime dataHoraTermino;
 }

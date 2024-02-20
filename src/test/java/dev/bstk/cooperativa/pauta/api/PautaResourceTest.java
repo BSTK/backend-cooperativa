@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
 import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.model.Pauta;
+import dev.bstk.cooperativa.pauta.model.SessaoVotacao;
+import dev.bstk.cooperativa.pauta.model.Status;
 import dev.bstk.cooperativa.pauta.service.PautaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +20,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -64,13 +68,28 @@ class PautaResourceTest {
     @Test
     @DisplayName("Deve iniciar uma sessão de votacao para uma pauta já cadastrada")
     void t2() throws Exception {
+        final long pautaId = 1L;
+        final long tempoDuracao = 2L;
+        final var dataHoraInicio = LocalDateTime.now();
+        final var dataHoraTermino = dataHoraInicio.plus(tempoDuracao, ChronoUnit.MINUTES);
+
+        final var sessaoVotacao = SessaoVotacao.builder()
+                .id(1L)
+                .status(Status.SessaoVotacaoStatus.INICIADA)
+                .dataHoraInicio(dataHoraInicio)
+                .dataHoraTermino(dataHoraTermino)
+                .build();
+
+        Mockito.when(pautaService.iniciarSessaoVotacao(pautaId, tempoDuracao))
+               .thenReturn(sessaoVotacao);
+
         mockMvc.perform(
-          post(ENDPOINT_INICIAR_SESSAO_VOTACAO, UUID.randomUUID().toString(), "3")
+          post(ENDPOINT_INICIAR_SESSAO_VOTACAO, pautaId, tempoDuracao)
         )
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.uuid").isNotEmpty())
-        .andExpect(jsonPath("$.pauta.uuid").isNotEmpty())
+        .andExpect(jsonPath("$.id").isNotEmpty())
+        .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.dataHoraInicio").isNotEmpty())
         .andExpect(jsonPath("$.dataHoraTermino").isNotEmpty());
     }

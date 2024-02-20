@@ -1,6 +1,8 @@
 package dev.bstk.cooperativa.pauta.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -18,6 +20,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "VOTACAO")
 public class Votacao implements Serializable {
 
@@ -30,11 +34,6 @@ public class Votacao implements Serializable {
     @OneToOne
     @JoinTable(name = "ASSOCIADO")
     private Associado associado;
-
-    @NotNull
-    @OneToOne
-    @JoinTable(name = "PAUTA")
-    private Pauta pauta;
 
     @NotNull
     @Column(name = "VOTO")

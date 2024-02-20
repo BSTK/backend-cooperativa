@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -13,11 +14,13 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.PrePersist;
 import javax.persistence.Table;
-import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Getter
@@ -26,8 +29,8 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "PAUTA")
-public class Pauta implements Serializable {
+@Table(name = "SESSAO_VOTACAO")
+public class SessaoVotacao implements Serializable {
 
     @Id
     @Column(name = "ID")
@@ -35,30 +38,34 @@ public class Pauta implements Serializable {
     private Long id;
 
     @NotNull
-    @NotEmpty
-    @Column(name = "TITULO", unique = true)
-    private String titulo;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "PAUTA_ID", referencedColumnName = "ID")
+    private Pauta pauta;
 
     @NotNull
     @Column(name = "STATUS")
     @Enumerated(EnumType.STRING)
-    private Status.PautaStatus status;
+    private Status.SessaoVotacaoStatus status;
+
+    @NotNull
+    @Column(name = "DATA_HORA_INICIO")
+    private LocalDateTime dataHoraInicio;
+
+    @NotNull
+    @Column(name = "DATA_HORA_FIM")
+    private LocalDateTime dataHoraTermino;
 
     @PrePersist
-    private void prePersiste() {
-        setStatus(Status.PautaStatus.CRIADA);
-    }
-
-    public boolean estaEncerrada() {
-        return Status.PautaStatus.ENCERRADA.equals(status);
+    private void prePersist() {
+        setStatus(Status.SessaoVotacaoStatus.INICIADA);
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Pauta pauta = (Pauta) o;
-        return id.equals(pauta.id);
+        SessaoVotacao that = (SessaoVotacao) o;
+        return id.equals(that.id);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package dev.bstk.cooperativa.pauta.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.Column;
@@ -15,6 +17,8 @@ import java.util.Objects;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "ASSOCIADO")
 public class Associado implements Serializable {
 
