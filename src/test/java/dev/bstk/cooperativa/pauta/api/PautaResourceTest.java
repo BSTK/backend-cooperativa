@@ -2,10 +2,11 @@ package dev.bstk.cooperativa.pauta.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
+import dev.bstk.cooperativa.pauta.model.Enums;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Sessao;
-import dev.bstk.cooperativa.pauta.model.Enums;
 import dev.bstk.cooperativa.pauta.service.PautaService;
+import dev.bstk.cooperativa.pauta.service.SessaoService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +35,7 @@ class PautaResourceTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ENDPOINT_CADASTRAR_NOVA_PAUTA = "/v1/api/pautas";
     private static final String ENDPOINT_VOTAR_PAUTA = "/v1/api/pautas/{pautaId}/votar";
-    private static final String ENDPOINT_INICIAR_SESSAO_VOTACAO = "/v1/api/pautas/{pautaId}/iniciar-sessao/{tempoDuracao}";
+    private static final String ENDPOINT_INICIAR_SESSAO_VOTACAO = "/v1/api/pautas/{pautaId}/iniciar-sessao";
 
     @Autowired
     private MockMvc mockMvc;
@@ -42,6 +43,8 @@ class PautaResourceTest {
     @MockBean
     private PautaService pautaService;
 
+    @MockBean
+    private SessaoService sessaoService;
 
     @Test
     @DisplayName("Deve cadastrar uma nova pauta")
@@ -78,11 +81,12 @@ class PautaResourceTest {
                 .dataHoraFim(dataHoraFim)
                 .build();
 
-        Mockito.when(pautaService.iniciarSessao(pautaId, tempoDuracao))
+        Mockito.when(sessaoService.iniciarSessao(pautaId, tempoDuracao))
                .thenReturn(sessaoVotacao);
 
         mockMvc.perform(
-          post(ENDPOINT_INICIAR_SESSAO_VOTACAO, pautaId, tempoDuracao)
+          post(ENDPOINT_INICIAR_SESSAO_VOTACAO, pautaId)
+             .queryParam("tempoDuracao", String.valueOf(tempoDuracao))
         )
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))

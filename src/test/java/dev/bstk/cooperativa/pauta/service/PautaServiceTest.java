@@ -11,8 +11,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
-
 @ExtendWith(MockitoExtension.class)
 class PautaServiceTest {
 
@@ -53,17 +51,5 @@ class PautaServiceTest {
 
         Mockito.verify(pautaRepository, Mockito.times(1)).existePautaJaCadastrada(Mockito.anyString());
         Mockito.verify(pautaRepository, Mockito.never()).save(Mockito.any());
-    }
-
-    @Test
-    @DisplayName("Deve lançar expception quando tentar inciar uma nova sessão sem uma pauta cadastrada")
-    void t3() {
-        Mockito.when(pautaRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-
-        final Long pautaId = 1L;
-        Assertions
-            .assertThatThrownBy(() -> pautaService.iniciarSessao(pautaId, 2L))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
     }
 }

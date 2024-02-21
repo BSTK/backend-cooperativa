@@ -8,6 +8,7 @@ import dev.bstk.cooperativa.pauta.helper.Mapper;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Votacao;
 import dev.bstk.cooperativa.pauta.service.PautaService;
+import dev.bstk.cooperativa.pauta.service.SessaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class PautaResource {
 
     private final PautaService pautaService;
+    private final SessaoService sessaoService;
 
     @GetMapping("/{pautaId}/resultado")
     public ResponseEntity<PautaResponse> ok(@PathVariable("pautaId") final Long pautaId) {
@@ -47,7 +49,7 @@ public class PautaResource {
     @PostMapping("/{pautaId}/iniciar-sessao")
     public ResponseEntity<SessaoResponse> iniciarSessao(@PathVariable("pautaId") final Long pautaId,
                                                         @RequestParam(value = "tempoDuracao", required = false) final Long tempoDuracao) {
-        final var novaSessaoIniciada = pautaService.iniciarSessao(pautaId, tempoDuracao);
+        final var novaSessaoIniciada = sessaoService.iniciarSessao(pautaId, tempoDuracao);
         final var novaSessaoIniciadaResponse = Mapper.to(novaSessaoIniciada, SessaoResponse.class);
 
         return ResponseEntity.ok(novaSessaoIniciadaResponse);
@@ -57,7 +59,7 @@ public class PautaResource {
     public ResponseEntity<Void> votarPauta(@PathVariable("pautaId") final Long pautaId,
                                            @RequestBody final PautaVotoRequest request) {
         final var voto = Mapper.to(request, Votacao.class);
-        pautaService.votar(pautaId, voto);
+        sessaoService.votar(pautaId, voto);
 
         return ResponseEntity.noContent().build();
     }
