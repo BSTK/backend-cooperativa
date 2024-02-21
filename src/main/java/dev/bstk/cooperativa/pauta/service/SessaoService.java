@@ -1,5 +1,7 @@
 package dev.bstk.cooperativa.pauta.service;
 
+import dev.bstk.cooperativa.pauta.infra.Evento;
+import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
 import dev.bstk.cooperativa.pauta.model.Enums;
 import dev.bstk.cooperativa.pauta.model.Sessao;
 import dev.bstk.cooperativa.pauta.model.Votacao;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
@@ -25,6 +28,7 @@ public class SessaoService {
     private final PautaRepository pautaRepository;
     private final SessaoRepository sessaoRepository;
     private final VotacaoRepository votacaoRepository;
+    private final NotificarEventoMq notificarEventoMq;
 
     @Transactional
     public Sessao iniciarSessao(final Long pautaId, final Long tempoDuracao) {
@@ -76,7 +80,12 @@ public class SessaoService {
 
                 sessao.setStatus(Enums.SessaoStatus.FECHADA);
                 sessaoRepository.saveAndFlush(sessao);
-                /// TODO - ENVIAR MENSSAGEM FILA
+
+                final var evento = Evento.builder()
+                        .data(Map.of("sessao", sessao))
+                        .build();
+                
+                notificarEventoMq.notificarEvento(evento);
             }
         }
     }

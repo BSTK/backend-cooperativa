@@ -1,10 +1,10 @@
 package dev.bstk.cooperativa.pauta.api.response;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 
@@ -16,9 +16,9 @@ public class SessaoResponse {
 
     private Long id;
 
-    @DateTimeFormat(pattern = "dd/MM/yy hh:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dataHoraInicio;
 
-    @DateTimeFormat(pattern = "dd/MM/yy hh:mm:ss")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime dataHoraFim;
 }

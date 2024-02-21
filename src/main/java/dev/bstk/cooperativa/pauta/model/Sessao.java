@@ -1,5 +1,6 @@
 package dev.bstk.cooperativa.pauta.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,10 +48,12 @@ public class Sessao implements Serializable {
     private Enums.SessaoStatus status;
 
     @NotNull
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "DATA_HORA_INICIO")
     private LocalDateTime dataHoraInicio;
 
     @NotNull
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     @Column(name = "DATA_HORA_FIM")
     private LocalDateTime dataHoraFim;
 

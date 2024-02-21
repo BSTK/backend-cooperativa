@@ -2,7 +2,6 @@ version: "3"
 
 services:
 
-  # ProtgreSql
   postgresql:
     image: "postgres:14.1"
     ports:
@@ -20,6 +19,20 @@ services:
       interval: 5s
       timeout: 5s
       retries: 6
+
+  rabbitmq:
+    image: rabbitmq:3.11.8-management
+    mem_limit: 512m
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend-cooperativa
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      interval: 5s
+      timeout: 2s
+      retries: 60
 
 networks:
   backend-cooperativa:
