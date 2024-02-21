@@ -7,14 +7,18 @@ import dev.bstk.cooperativa.pauta.api.response.SessaoResponse;
 import dev.bstk.cooperativa.pauta.helper.Mapper;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Votacao;
+import dev.bstk.cooperativa.pauta.repository.VotacaoRepository;
+import dev.bstk.cooperativa.pauta.repository.projections.VotacaoPautaResultado;
 import dev.bstk.cooperativa.pauta.service.PautaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
@@ -24,6 +28,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class PautaResource {
 
     private final PautaService pautaService;
+    private final VotacaoRepository votacaoRepository;
+
+    /// TODO - REMOVER MOCK
+    @GetMapping("/{sessaoId}")
+    public ResponseEntity<VotacaoPautaResultado> ok(@PathVariable("sessaoId") final Long sessaoId) {
+        return ResponseEntity.ok(votacaoRepository.contabilizarResultado(sessaoId));
+    }
 
     @PostMapping
     public ResponseEntity<PautaResponse> cadastrarNovaPauta(@RequestBody final PautaRequest request) {
@@ -34,9 +45,9 @@ public class PautaResource {
         return ResponseEntity.ok(novaPautaCadastradaResponse);
     }
 
-    @PostMapping("/{pautaId}/iniciar-sessao/{tempoDuracao}")
+    @PostMapping("/{pautaId}/iniciar-sessao")
     public ResponseEntity<SessaoResponse> iniciarSessao(@PathVariable("pautaId") final Long pautaId,
-                                                        @PathVariable("tempoDuracao") final Long tempoDuracao) {
+                                                        @RequestParam(value = "tempoDuracao", required = false) final Long tempoDuracao) {
         final var novaSessaoIniciada = pautaService.iniciarSessao(pautaId, tempoDuracao);
         final var novaSessaoIniciadaResponse = Mapper.to(novaSessaoIniciada, SessaoResponse.class);
 

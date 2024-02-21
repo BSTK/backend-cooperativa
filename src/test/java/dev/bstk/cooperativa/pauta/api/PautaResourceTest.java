@@ -2,10 +2,9 @@ package dev.bstk.cooperativa.pauta.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
-import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Sessao;
-import dev.bstk.cooperativa.pauta.model.Status;
+import dev.bstk.cooperativa.pauta.model.Enums;
 import dev.bstk.cooperativa.pauta.service.PautaService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -74,7 +73,7 @@ class PautaResourceTest {
 
         final var sessaoVotacao = Sessao.builder()
                 .id(1L)
-                .status(Status.SessaoStatus.ABERTA)
+                .status(Enums.SessaoStatus.ABERTA)
                 .dataHoraInicio(dataHoraInicio)
                 .dataHoraFim(dataHoraFim)
                 .build();

@@ -1,5 +1,7 @@
 package dev.bstk.cooperativa.pauta.model;
 
+import dev.bstk.cooperativa.pauta.model.Enums.PautaResultado;
+import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -42,11 +44,24 @@ public class Pauta implements Serializable {
     @NotNull
     @Column(name = "STATUS")
     @Enumerated(EnumType.STRING)
-    private Status.PautaStatus status;
+    private PautaStatus status;
+
+    @Column(name = "RESULTADO")
+    @Enumerated(EnumType.STRING)
+    private PautaResultado resultado;
+
+    @Column(name = "TOTAL_VOTOS")
+    private Integer totalVotos;
+
+    @Column(name = "TOTAL_VOTOS_SIM")
+    private Integer totalVotosSim;
+
+    @Column(name = "TOTAL_VOTOS_NAO")
+    private Integer totalVotosNao;
 
     @PrePersist
     private void prePersiste() {
-        setStatus(Status.PautaStatus.ABERTA);
+        setStatus(PautaStatus.ABERTA);
     }
 
     @Override

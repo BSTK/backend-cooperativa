@@ -44,7 +44,7 @@ public class Sessao implements Serializable {
     @NotNull
     @Column(name = "STATUS")
     @Enumerated(EnumType.STRING)
-    private Status.SessaoStatus status;
+    private Enums.SessaoStatus status;
 
     @NotNull
     @Column(name = "DATA_HORA_INICIO")
