@@ -1,6 +1,7 @@
 package dev.bstk.cooperativa.pauta.service;
 
-import dev.bstk.cooperativa.pauta.model.Enums;
+import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
+import dev.bstk.cooperativa.pauta.model.Enums.SessaoStatus;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Sessao;
 import dev.bstk.cooperativa.pauta.model.Votacao;
@@ -37,9 +38,22 @@ public class PautaService {
         return pautaRepository.save(pauta);
     }
 
+    public Pauta buscarPautaFinalizada(final Long pautaId) {
+        final var pauta = pautaRepository
+                .findById(pautaId)
+                .orElseThrow(() -> new IllegalArgumentException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
+
+        if (!PautaStatus.FECHADA.equals(pauta.getStatus())) {
+            throw new IllegalArgumentException(String.format("Pauta ainda não está finalizada. Status: [ %s ]!", pauta.getStatus()));
+        }
+
+        return pauta;
+    }
+
     @Transactional
     public Sessao iniciarSessao(final Long pautaId, final Long tempoDuracao) {
-        final var pauta = pautaRepository.findById(pautaId)
+        final var pauta = pautaRepository
+                .findById(pautaId)
                 .orElseThrow(() -> new IllegalArgumentException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
 
         final var sessaoVotacaoOptional = sessaoRepository.buscarSessaoPorPauta(pautaId);
@@ -53,11 +67,11 @@ public class PautaService {
                 ? dataHoraInicio.plus(tempoDuracao, ChronoUnit.MINUTES)
                 : dataHoraInicio.plus(TEMPO_DEFAULT_DURACAO_SESSAO_EM_MINUTOS, ChronoUnit.MINUTES);
 
-        pauta.setStatus(Enums.PautaStatus.EM_VOTACAO);
+        pauta.setStatus(PautaStatus.EM_VOTACAO);
 
         final var novaSessaoVotacaoIniciada = Sessao.builder()
                 .pauta(pauta)
-                .status(Enums.SessaoStatus.ABERTA)
+                .status(SessaoStatus.ABERTA)
                 .dataHoraInicio(dataHoraInicio)
                 .dataHoraFim(dataHoraFim)
                 .build();
@@ -78,13 +92,13 @@ public class PautaService {
             if (deveFecharSessao) {
                 final var resultadoVotacao = votacaoRepository.contabilizarResultado(sessao.getId());
                 final var pauta = sessao.getPauta();
-                pauta.setStatus(Enums.PautaStatus.FECHADA);
+                pauta.setStatus(PautaStatus.FECHADA);
                 pauta.setResultado(resultadoVotacao.resultado());
                 pauta.setTotalVotos(resultadoVotacao.getTotalVotos());
                 pauta.setTotalVotosSim(resultadoVotacao.getTotalVotosSim());
                 pauta.setTotalVotosNao(resultadoVotacao.getTotalVotosNao());
 
-                sessao.setStatus(Enums.SessaoStatus.FECHADA);
+                sessao.setStatus(SessaoStatus.FECHADA);
                 sessaoRepository.saveAndFlush(sessao);
             }
         }

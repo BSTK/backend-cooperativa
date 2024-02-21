@@ -7,8 +7,6 @@ import dev.bstk.cooperativa.pauta.api.response.SessaoResponse;
 import dev.bstk.cooperativa.pauta.helper.Mapper;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Votacao;
-import dev.bstk.cooperativa.pauta.repository.VotacaoRepository;
-import dev.bstk.cooperativa.pauta.repository.projections.VotacaoPautaResultado;
 import dev.bstk.cooperativa.pauta.service.PautaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +26,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class PautaResource {
 
     private final PautaService pautaService;
-    private final VotacaoRepository votacaoRepository;
 
-    /// TODO - REMOVER MOCK
-    @GetMapping("/{sessaoId}")
-    public ResponseEntity<VotacaoPautaResultado> ok(@PathVariable("sessaoId") final Long sessaoId) {
-        return ResponseEntity.ok(votacaoRepository.contabilizarResultado(sessaoId));
+    @GetMapping("/{pautaId}/resultado")
+    public ResponseEntity<PautaResponse> ok(@PathVariable("pautaId") final Long pautaId) {
+        final var pauta = pautaService.buscarPautaFinalizada(pautaId);
+        final var pautaResponse = Mapper.to(pauta, PautaResponse.class);
+
+        return ResponseEntity.ok(pautaResponse);
     }
 
     @PostMapping
