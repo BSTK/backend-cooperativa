@@ -3,13 +3,13 @@ package dev.bstk.cooperativa.pauta.model;
 public interface Status {
 
     enum PautaStatus {
-        CRIADA,
+        ABERTA,
         EM_VOTACAO,
-        ENCERRADA
+        FECHADA
     }
 
-    enum SessaoVotacaoStatus {
-        INICIADA,
-        ENCERRADA
+    enum SessaoStatus {
+        ABERTA,
+        FECHADA
     }
 }

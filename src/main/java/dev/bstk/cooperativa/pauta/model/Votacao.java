@@ -6,11 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -33,6 +36,11 @@ public class Votacao implements Serializable {
     @NotNull
     @Column(name = "ASSOCIADO_ID")
     private Long associadoId;
+
+    @NotNull
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "SESSAO_ID", referencedColumnName = "ID")
+    private Sessao sessao;
 
     @NotNull
     @Column(name = "VOTO")

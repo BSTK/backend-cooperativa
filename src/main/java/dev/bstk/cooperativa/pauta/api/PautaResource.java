@@ -3,7 +3,7 @@ package dev.bstk.cooperativa.pauta.api;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
 import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.api.response.PautaResponse;
-import dev.bstk.cooperativa.pauta.api.response.SessaoVotacaoResponse;
+import dev.bstk.cooperativa.pauta.api.response.SessaoResponse;
 import dev.bstk.cooperativa.pauta.helper.Mapper;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.model.Votacao;
@@ -34,13 +34,13 @@ public class PautaResource {
         return ResponseEntity.ok(novaPautaCadastradaResponse);
     }
 
-    @PostMapping("/{pautaId}/iniciar-sessao-votacao/{tempoDuracao}")
-    public ResponseEntity<SessaoVotacaoResponse> iniciarSessaoVotacao(@PathVariable("pautaId") final Long pautaId,
-                                                                      @PathVariable("tempoDuracao") final Long tempoDuracao) {
-        final var novaSessaoVotacaoIniciada = pautaService.iniciarSessaoVotacao(pautaId, tempoDuracao);
-        final var novaSessaoVotacaoIniciadaResponse = Mapper.to(novaSessaoVotacaoIniciada, SessaoVotacaoResponse.class);
+    @PostMapping("/{pautaId}/iniciar-sessao/{tempoDuracao}")
+    public ResponseEntity<SessaoResponse> iniciarSessao(@PathVariable("pautaId") final Long pautaId,
+                                                        @PathVariable("tempoDuracao") final Long tempoDuracao) {
+        final var novaSessaoIniciada = pautaService.iniciarSessao(pautaId, tempoDuracao);
+        final var novaSessaoIniciadaResponse = Mapper.to(novaSessaoIniciada, SessaoResponse.class);
 
-        return ResponseEntity.ok(novaSessaoVotacaoIniciadaResponse);
+        return ResponseEntity.ok(novaSessaoIniciadaResponse);
     }
 
     @PostMapping("/{pautaId}/votar")

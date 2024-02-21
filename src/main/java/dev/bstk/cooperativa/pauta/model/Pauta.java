@@ -46,11 +46,7 @@ public class Pauta implements Serializable {
 
     @PrePersist
     private void prePersiste() {
-        setStatus(Status.PautaStatus.CRIADA);
-    }
-
-    public boolean estaEncerrada() {
-        return Status.PautaStatus.ENCERRADA.equals(status);
+        setStatus(Status.PautaStatus.ABERTA);
     }
 
     @Override

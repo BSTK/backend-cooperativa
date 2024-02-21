@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.bstk.cooperativa.pauta.api.request.PautaRequest;
 import dev.bstk.cooperativa.pauta.api.request.PautaVotoRequest;
 import dev.bstk.cooperativa.pauta.model.Pauta;
-import dev.bstk.cooperativa.pauta.model.SessaoVotacao;
+import dev.bstk.cooperativa.pauta.model.Sessao;
 import dev.bstk.cooperativa.pauta.model.Status;
 import dev.bstk.cooperativa.pauta.service.PautaService;
 import org.junit.jupiter.api.DisplayName;
@@ -22,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -36,7 +35,7 @@ class PautaResourceTest {
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final String ENDPOINT_CADASTRAR_NOVA_PAUTA = "/v1/api/pautas";
     private static final String ENDPOINT_VOTAR_PAUTA = "/v1/api/pautas/{pautaId}/votar";
-    private static final String ENDPOINT_INICIAR_SESSAO_VOTACAO = "/v1/api/pautas/{pautaId}/iniciar-sessao-votacao/{tempoDuracao}";
+    private static final String ENDPOINT_INICIAR_SESSAO_VOTACAO = "/v1/api/pautas/{pautaId}/iniciar-sessao/{tempoDuracao}";
 
     @Autowired
     private MockMvc mockMvc;
@@ -71,16 +70,16 @@ class PautaResourceTest {
         final long pautaId = 1L;
         final long tempoDuracao = 2L;
         final var dataHoraInicio = LocalDateTime.now();
-        final var dataHoraTermino = dataHoraInicio.plus(tempoDuracao, ChronoUnit.MINUTES);
+        final var dataHoraFim = dataHoraInicio.plus(tempoDuracao, ChronoUnit.MINUTES);
 
-        final var sessaoVotacao = SessaoVotacao.builder()
+        final var sessaoVotacao = Sessao.builder()
                 .id(1L)
-                .status(Status.SessaoVotacaoStatus.INICIADA)
+                .status(Status.SessaoStatus.ABERTA)
                 .dataHoraInicio(dataHoraInicio)
-                .dataHoraTermino(dataHoraTermino)
+                .dataHoraFim(dataHoraFim)
                 .build();
 
-        Mockito.when(pautaService.iniciarSessaoVotacao(pautaId, tempoDuracao))
+        Mockito.when(pautaService.iniciarSessao(pautaId, tempoDuracao))
                .thenReturn(sessaoVotacao);
 
         mockMvc.perform(
@@ -91,23 +90,20 @@ class PautaResourceTest {
         .andExpect(jsonPath("$.id").isNotEmpty())
         .andExpect(jsonPath("$.id").isNumber())
         .andExpect(jsonPath("$.dataHoraInicio").isNotEmpty())
-        .andExpect(jsonPath("$.dataHoraTermino").isNotEmpty());
+        .andExpect(jsonPath("$.dataHoraFim").isNotEmpty());
     }
 
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
-    @DisplayName("Deve incluir um voto em uma pauta")
+    @DisplayName("Deve votar uma pauta")
     void t3(final Boolean voto) throws Exception {
-        final var request = PautaVotoRequest
-           .builder()
-           .associadoId(1L)
-           .voto(voto)
-           .build();
+        final var votoString = voto ? "Sim" : "Não";
+        final var request = String.format("{\"associadoId\":1,\"voto\":\"%s\"}", votoString);
 
         mockMvc.perform(
-           post(ENDPOINT_VOTAR_PAUTA, UUID.randomUUID().toString())
+           post(ENDPOINT_VOTAR_PAUTA, "1")
              .contentType(MediaType.APPLICATION_JSON)
-             .content(MAPPER.writeValueAsString(request))
+             .content(request)
         )
         .andExpect(status().isNoContent());
     }

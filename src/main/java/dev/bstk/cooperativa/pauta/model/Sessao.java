@@ -16,7 +16,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
-import javax.persistence.PrePersist;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -29,8 +28,8 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "SESSAO_VOTACAO")
-public class SessaoVotacao implements Serializable {
+@Table(name = "SESSAO")
+public class Sessao implements Serializable {
 
     @Id
     @Column(name = "ID")
@@ -45,7 +44,7 @@ public class SessaoVotacao implements Serializable {
     @NotNull
     @Column(name = "STATUS")
     @Enumerated(EnumType.STRING)
-    private Status.SessaoVotacaoStatus status;
+    private Status.SessaoStatus status;
 
     @NotNull
     @Column(name = "DATA_HORA_INICIO")
@@ -53,13 +52,13 @@ public class SessaoVotacao implements Serializable {
 
     @NotNull
     @Column(name = "DATA_HORA_FIM")
-    private LocalDateTime dataHoraTermino;
+    private LocalDateTime dataHoraFim;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SessaoVotacao that = (SessaoVotacao) o;
+        Sessao that = (Sessao) o;
         return id.equals(that.id);
     }
 

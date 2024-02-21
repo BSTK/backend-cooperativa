@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SessaoVotacaoResponse {
+public class SessaoResponse {
 
     private Long id;
 
@@ -20,5 +20,5 @@ public class SessaoVotacaoResponse {
     private LocalDateTime dataHoraInicio;
 
     @DateTimeFormat(pattern = "dd/MM/yy hh:mm:ss")
-    private LocalDateTime dataHoraTermino;
+    private LocalDateTime dataHoraFim;
 }
