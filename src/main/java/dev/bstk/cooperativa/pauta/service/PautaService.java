@@ -20,6 +20,7 @@ public class PautaService {
     public Pauta cadastrarNovaPauta(final Pauta pauta) {
         final boolean existePautaJaCadastrada = pautaRepository.existePautaJaCadastrada(pauta.getTitulo());
         if (existePautaJaCadastrada) {
+            log.warn(String.format("Pauta [ %s ] já cadastrada!", pauta.getTitulo()));
             throw new NaoEncontradoException(String.format("Pauta [ %s ] já cadastrada!", pauta.getTitulo()));
         }
 
@@ -29,9 +30,13 @@ public class PautaService {
     public Pauta buscarPautaFinalizada(final Long pautaId) {
         final var pauta = pautaRepository
                 .findById(pautaId)
-                .orElseThrow(() -> new NaoEncontradoException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
+                .orElseThrow(() -> {
+                    log.warn(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
+                    throw new NaoEncontradoException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
+                });
 
         if (!PautaStatus.FECHADA.equals(pauta.getStatus())) {
+            log.warn(String.format("Pauta ainda não está finalizada. Status: [ %s ]!", pauta.getStatus()));
             throw new PautaInvalidaException(String.format("Pauta ainda não está finalizada. Status: [ %s ]!", pauta.getStatus()));
         }
 

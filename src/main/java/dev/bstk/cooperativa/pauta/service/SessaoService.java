@@ -39,11 +39,15 @@ public class SessaoService {
     public Sessao iniciarSessao(final Long pautaId, final Long tempoDuracao) {
         final var pauta = pautaRepository
                 .findById(pautaId)
-                .orElseThrow(() -> new NaoEncontradoException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
+                .orElseThrow(() -> {
+                    log.warn(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
+                    throw new NaoEncontradoException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
+                });
 
         final var sessaoVotacaoOptional = sessaoRepository.buscarSessaoPorPauta(pautaId);
         if (sessaoVotacaoOptional.isPresent()) {
             final var statusPauta = sessaoVotacaoOptional.get().getPauta().getStatus();
+            log.warn(String.format("Está pauta está [ %s ]!", statusPauta));
             throw new PautaInvalidaException(String.format("Está pauta está [ %s ]!", statusPauta));
         }
 
@@ -61,7 +65,15 @@ public class SessaoService {
                 .dataHoraFim(dataHoraFim)
                 .build();
 
-        return sessaoRepository.save(novaSessaoVotacaoIniciada);
+        final var novaSessaoVotacaoIniciadaSalva = sessaoRepository.save(novaSessaoVotacaoIniciada);
+
+        log.info("Sessão iniciada. Pauta: [ {} ], Inicio: [ {} ], Fim: [ {} ]",
+            novaSessaoVotacaoIniciadaSalva.getPauta().getTitulo(),
+            novaSessaoVotacaoIniciadaSalva.getDataHoraInicio(),
+            novaSessaoVotacaoIniciadaSalva.getDataHoraFim()
+        );
+
+        return novaSessaoVotacaoIniciadaSalva;
     }
 
     @Transactional
@@ -77,6 +89,7 @@ public class SessaoService {
             if (deveFecharSessao) {
                 var resultadoVotacao = votacaoRepository.contabilizarResultado(sessao.getId());
                 if (Objects.isNull(resultadoVotacao)) {
+                    log.warn("Sessão finalizada com votação zerada!");
                     resultadoVotacao = VotacaoPautaResultado.votacaoZerada();
                 }
 
@@ -89,6 +102,11 @@ public class SessaoService {
 
                 sessao.setStatus(SessaoStatus.FECHADA);
                 sessaoRepository.saveAndFlush(sessao);
+                log.info("Sessão finalizada. Pauta: [ {} ], Inicio: [ {} ], Fim: [ {} ]",
+                   sessao.getPauta().getTitulo(),
+                   sessao.getDataHoraInicio(),
+                   sessao.getDataHoraFim()
+                );
 
                 final var evento = Evento.builder()
                         .data(Map.of("sessao", sessao))
@@ -102,10 +120,14 @@ public class SessaoService {
     public void votar(final Long pautaId, final Votacao votacao) {
         final var sessao = sessaoRepository
                 .buscarSessaoAberta(pautaId)
-                .orElseThrow(() -> new NaoEncontradoException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId)));
+                .orElseThrow(() -> {
+                    log.warn(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
+                    throw new NaoEncontradoException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
+                });
 
         final var associadoJaVotou = votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId());
         if (associadoJaVotou) {
+            log.warn("Associado Já votou. Permitido apenas um voto por associado!");
             throw new VotoInvalidoException("Associado Já votou. Permitido apenas um voto por associado!");
         }
 
