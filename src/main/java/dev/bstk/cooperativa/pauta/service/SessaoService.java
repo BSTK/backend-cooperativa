@@ -2,7 +2,8 @@ package dev.bstk.cooperativa.pauta.service;
 
 import dev.bstk.cooperativa.pauta.infra.Evento;
 import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
-import dev.bstk.cooperativa.pauta.model.Enums;
+import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
+import dev.bstk.cooperativa.pauta.model.Enums.SessaoStatus;
 import dev.bstk.cooperativa.pauta.model.Sessao;
 import dev.bstk.cooperativa.pauta.model.Votacao;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
@@ -47,11 +48,11 @@ public class SessaoService {
                 ? dataHoraInicio.plus(tempoDuracao, ChronoUnit.MINUTES)
                 : dataHoraInicio.plus(TEMPO_DEFAULT_DURACAO_SESSAO_EM_MINUTOS, ChronoUnit.MINUTES);
 
-        pauta.setStatus(Enums.PautaStatus.EM_VOTACAO);
+        pauta.setStatus(PautaStatus.EM_VOTACAO);
 
         final var novaSessaoVotacaoIniciada = Sessao.builder()
                 .pauta(pauta)
-                .status(Enums.SessaoStatus.ABERTA)
+                .status(SessaoStatus.ABERTA)
                 .dataHoraInicio(dataHoraInicio)
                 .dataHoraFim(dataHoraFim)
                 .build();
@@ -72,13 +73,13 @@ public class SessaoService {
             if (deveFecharSessao) {
                 final var resultadoVotacao = votacaoRepository.contabilizarResultado(sessao.getId());
                 final var pauta = sessao.getPauta();
-                pauta.setStatus(Enums.PautaStatus.FECHADA);
+                pauta.setStatus(PautaStatus.FECHADA);
                 pauta.setResultado(resultadoVotacao.resultado());
                 pauta.setTotalVotos(resultadoVotacao.getTotalVotos());
                 pauta.setTotalVotosSim(resultadoVotacao.getTotalVotosSim());
                 pauta.setTotalVotosNao(resultadoVotacao.getTotalVotosNao());
 
-                sessao.setStatus(Enums.SessaoStatus.FECHADA);
+                sessao.setStatus(SessaoStatus.FECHADA);
                 sessaoRepository.saveAndFlush(sessao);
 
                 final var evento = Evento.builder()
