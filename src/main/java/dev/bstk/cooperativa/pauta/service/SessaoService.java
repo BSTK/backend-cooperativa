@@ -1,8 +1,8 @@
 package dev.bstk.cooperativa.pauta.service;
 
-import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 import dev.bstk.cooperativa.pauta.handlerexception.exception.NaoEncontradoException;
 import dev.bstk.cooperativa.pauta.handlerexception.exception.PautaInvalidaException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 import dev.bstk.cooperativa.pauta.infra.Evento;
 import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
@@ -12,6 +12,7 @@ import dev.bstk.cooperativa.pauta.model.Votacao;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
 import dev.bstk.cooperativa.pauta.repository.SessaoRepository;
 import dev.bstk.cooperativa.pauta.repository.VotacaoRepository;
+import dev.bstk.cooperativa.pauta.repository.projections.VotacaoPautaResultado;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +75,11 @@ public class SessaoService {
         for (Sessao sessao : sessoes) {
             final var deveFecharSessao = sessao.getDataHoraFim().isBefore(LocalDateTime.now());
             if (deveFecharSessao) {
-                final var resultadoVotacao = votacaoRepository.contabilizarResultado(sessao.getId());
+                var resultadoVotacao = votacaoRepository.contabilizarResultado(sessao.getId());
+                if (Objects.isNull(resultadoVotacao)) {
+                    resultadoVotacao = VotacaoPautaResultado.votacaoZerada();
+                }
+
                 final var pauta = sessao.getPauta();
                 pauta.setStatus(PautaStatus.FECHADA);
                 pauta.setResultado(resultadoVotacao.resultado());
@@ -88,7 +93,7 @@ public class SessaoService {
                 final var evento = Evento.builder()
                         .data(Map.of("sessao", sessao))
                         .build();
-                
+
                 notificarEventoMq.notificarEvento(evento);
             }
         }

@@ -1,8 +1,8 @@
 package dev.bstk.cooperativa.pauta.service;
 
-import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 import dev.bstk.cooperativa.pauta.handlerexception.exception.NaoEncontradoException;
 import dev.bstk.cooperativa.pauta.handlerexception.exception.PautaInvalidaException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaResultado;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
@@ -178,10 +178,38 @@ class SessaoServiceTest {
         verify(notificarEventoMq, times(sessoesAbertas.size())).notificarEvento(any());
     }
 
+    @Test
+    @DisplayName("Deve finalizar sessão com pontuação zerada quando sessão não houver votos")
+    void t6() {
+        final var sessao1 = Sessao.builder().id(1L).status(SessaoStatus.ABERTA)
+                .pauta(Pauta.builder().build())
+                .dataHoraFim(LocalDateTime.now().minus(2, ChronoUnit.MINUTES)).build();
+
+        final var sessao2 = Sessao.builder().id(2L).status(SessaoStatus.ABERTA)
+                .pauta(Pauta.builder().build())
+                .dataHoraFim(LocalDateTime.now().minus(2, ChronoUnit.MINUTES)).build();
+        final var sessoesAbertas = List.of(sessao1, sessao2);
+
+        when(sessaoRepository.buscarSessoesAberta()).thenReturn(sessoesAbertas);
+        when(votacaoRepository.contabilizarResultado(anyLong())).thenReturn(null);
+
+        sessaoService.finalizarSessao();
+
+        assertThat(sessao1.getStatus()).isEqualTo(SessaoStatus.FECHADA);
+        assertThat(sessao1.getPauta().getStatus()).isEqualTo(PautaStatus.FECHADA);
+        assertThat(sessao1.getPauta().getResultado()).isEqualTo(PautaResultado.NAO_APROVADA);
+        assertThat(sessao1.getPauta().getTotalVotos()).isZero();
+        assertThat(sessao1.getPauta().getTotalVotosSim()).isZero();
+        assertThat(sessao1.getPauta().getTotalVotosNao()).isZero();
+
+        verify(sessaoRepository, times(sessoesAbertas.size())).saveAndFlush(any());
+        verify(notificarEventoMq, times(sessoesAbertas.size())).notificarEvento(any());
+    }
+
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     @DisplayName("Deve votar quando uma sessao estiver aberta e voto deve ser computado")
-    void t6(final Boolean voto) {
+    void t7(final Boolean voto) {
         final var pautaId = 1L;
         final var votacao = Votacao.builder().voto(voto).build();
         final var sessao = Sessao.builder().id(1L).status(SessaoStatus.ABERTA)
@@ -199,7 +227,7 @@ class SessaoServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     @DisplayName("Deve lançar exception quando sessão estiver fechada")
-    void t7(final Boolean voto) {
+    void t8(final Boolean voto) {
         final var pautaId = 1L;
         final var votacao = Votacao.builder().voto(voto).build();
 
@@ -215,7 +243,7 @@ class SessaoServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = { true, false })
     @DisplayName("Deve lançar exception quando associado já votou")
-    void t8(final Boolean voto) {
+    void t9(final Boolean voto) {
         final var pautaId = 1L;
         final var votacao = Votacao.builder().voto(voto).build();
         final var sessao = Sessao.builder().id(1L).status(SessaoStatus.ABERTA)

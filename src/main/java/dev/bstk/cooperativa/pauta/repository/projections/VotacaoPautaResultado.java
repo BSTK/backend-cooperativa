@@ -13,4 +13,17 @@ public interface VotacaoPautaResultado {
                 ? PautaResultado.APROVADA
                 : PautaResultado.NAO_APROVADA;
     }
+
+    static VotacaoPautaResultado votacaoZerada() {
+        return new VotacaoPautaResultado() {
+            @Override
+            public Integer getTotalVotos() { return 0; }
+
+            @Override
+            public Integer getTotalVotosSim() { return 0; }
+
+            @Override
+            public Integer getTotalVotosNao() { return 0; }
+        };
+    }
 }
