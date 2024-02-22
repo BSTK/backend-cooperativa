@@ -1,5 +1,8 @@
 package dev.bstk.cooperativa.pauta.service;
 
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.NaoEncontradoException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.PautaInvalidaException;
 import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaResultado;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
@@ -109,7 +112,7 @@ class SessaoServiceTest {
         when(pautaRepository.findById(pautaId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> sessaoService.iniciarSessao(pautaId, tempoDuracao))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NaoEncontradoException.class)
                 .hasMessage(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
 
         verify(pautaRepository).findById(pautaId);
@@ -128,7 +131,7 @@ class SessaoServiceTest {
         when(sessaoRepository.buscarSessaoPorPauta(pautaId)).thenReturn(Optional.of(sessaoExistente));
 
         assertThatThrownBy(() -> sessaoService.iniciarSessao(pautaId, tempoDuracao))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(PautaInvalidaException.class)
                 .hasMessage(String.format("Está pauta está [ %s ]!", pauta.getStatus()));
 
         verify(pautaRepository).findById(pautaId);
@@ -203,7 +206,7 @@ class SessaoServiceTest {
         when(sessaoRepository.buscarSessaoAberta(pautaId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> sessaoService.votar(pautaId, votacao))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(NaoEncontradoException.class)
                 .hasMessage(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
 
         verify(votacaoRepository, never()).saveAndFlush(any());
@@ -223,7 +226,7 @@ class SessaoServiceTest {
         when(votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId())).thenReturn(true);
 
         assertThatThrownBy(() -> sessaoService.votar(pautaId, votacao))
-                .isInstanceOf(IllegalArgumentException.class)
+                .isInstanceOf(VotoInvalidoException.class)
                 .hasMessage("Associado Já votou. Permitido apenas um voto por associado!");
 
         verify(votacaoRepository, never()).saveAndFlush(any());

@@ -1,5 +1,7 @@
 package dev.bstk.cooperativa.pauta.service;
 
+import dev.bstk.cooperativa.pauta.handlerexception.exception.NaoEncontradoException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.PautaInvalidaException;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
 import dev.bstk.cooperativa.pauta.model.Pauta;
 import dev.bstk.cooperativa.pauta.repository.PautaRepository;
@@ -55,7 +57,7 @@ class PautaServiceTest {
 
         final var novaPauta = Pauta.builder().titulo("Nova Pauta").build();
         assertThatThrownBy(() -> pautaService.cadastrarNovaPauta(novaPauta))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(NaoEncontradoException.class)
             .hasMessage(String.format("Pauta [ %s ] já cadastrada!", novaPauta.getTitulo()));
 
         verify(pautaRepository, times(1)).existePautaJaCadastrada(anyString());
@@ -82,7 +84,7 @@ class PautaServiceTest {
         when(pautaRepository.findById(pautaId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> pautaService.buscarPautaFinalizada(pautaId))
-           .isInstanceOf(IllegalArgumentException.class)
+           .isInstanceOf(NaoEncontradoException.class)
            .hasMessage(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId));
 
         verify(pautaRepository).findById(pautaId);
@@ -96,7 +98,7 @@ class PautaServiceTest {
         when(pautaRepository.findById(pautaId)).thenReturn(Optional.of(pautaEncontrada));
 
         assertThatThrownBy(() -> pautaService.buscarPautaFinalizada(pautaId))
-            .isInstanceOf(IllegalArgumentException.class)
+            .isInstanceOf(PautaInvalidaException.class)
             .hasMessage(String.format("Pauta ainda não está finalizada. Status: [ %s ]!", pautaEncontrada.getStatus()));
 
         verify(pautaRepository).findById(pautaId);

@@ -1,5 +1,8 @@
 package dev.bstk.cooperativa.pauta.service;
 
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.NaoEncontradoException;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.PautaInvalidaException;
 import dev.bstk.cooperativa.pauta.infra.Evento;
 import dev.bstk.cooperativa.pauta.infra.NotificarEventoMq;
 import dev.bstk.cooperativa.pauta.model.Enums.PautaStatus;
@@ -35,12 +38,12 @@ public class SessaoService {
     public Sessao iniciarSessao(final Long pautaId, final Long tempoDuracao) {
         final var pauta = pautaRepository
                 .findById(pautaId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
+                .orElseThrow(() -> new NaoEncontradoException(String.format("Não existe pauta cadastrada [ id: %s ]!", pautaId)));
 
         final var sessaoVotacaoOptional = sessaoRepository.buscarSessaoPorPauta(pautaId);
         if (sessaoVotacaoOptional.isPresent()) {
             final var statusPauta = sessaoVotacaoOptional.get().getPauta().getStatus();
-            throw new IllegalArgumentException(String.format("Está pauta está [ %s ]!", statusPauta));
+            throw new PautaInvalidaException(String.format("Está pauta está [ %s ]!", statusPauta));
         }
 
         final var dataHoraInicio = LocalDateTime.now();
@@ -94,11 +97,11 @@ public class SessaoService {
     public void votar(final Long pautaId, final Votacao votacao) {
         final var sessao = sessaoRepository
                 .buscarSessaoAberta(pautaId)
-                .orElseThrow(() -> new IllegalArgumentException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId)));
+                .orElseThrow(() -> new NaoEncontradoException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId)));
 
         final var associadoJaVotou = votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId());
         if (associadoJaVotou) {
-            throw new IllegalArgumentException("Associado Já votou. Permitido apenas um voto por associado!");
+            throw new VotoInvalidoException("Associado Já votou. Permitido apenas um voto por associado!");
         }
 
         final var votoComputado = Votacao
