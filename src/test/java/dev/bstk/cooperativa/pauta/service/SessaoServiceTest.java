@@ -246,11 +246,6 @@ class SessaoServiceTest {
     void t9(final Boolean voto) {
         final var pautaId = 1L;
         final var votacao = Votacao.builder().voto(voto).build();
-        final var sessao = Sessao.builder().id(1L).status(SessaoStatus.ABERTA)
-                .pauta(Pauta.builder().build())
-                .dataHoraFim(LocalDateTime.now().minus(2, ChronoUnit.MINUTES)).build();
-
-        when(sessaoRepository.buscarSessaoAberta(pautaId)).thenReturn(Optional.of(sessao));
         when(votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId())).thenReturn(true);
 
         assertThatThrownBy(() -> sessaoService.votar(pautaId, votacao))

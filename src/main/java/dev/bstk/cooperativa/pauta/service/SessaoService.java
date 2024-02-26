@@ -118,18 +118,18 @@ public class SessaoService {
     }
 
     public void votar(final Long pautaId, final Votacao votacao) {
+        final var associadoJaVotou = votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId());
+        if (associadoJaVotou) {
+            log.warn("Associado Já votou. Permitido apenas um voto por associado!");
+            throw new VotoInvalidoException("Associado Já votou. Permitido apenas um voto por associado!");
+        }
+
         final var sessao = sessaoRepository
                 .buscarSessaoAberta(pautaId)
                 .orElseThrow(() -> {
                     log.warn(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
                     throw new NaoEncontradoException(String.format("Não há sessão aberta para está pauta [ id: %s ]!", pautaId));
                 });
-
-        final var associadoJaVotou = votacaoRepository.associadoJaVotou(pautaId, votacao.getAssociadoId());
-        if (associadoJaVotou) {
-            log.warn("Associado Já votou. Permitido apenas um voto por associado!");
-            throw new VotoInvalidoException("Associado Já votou. Permitido apenas um voto por associado!");
-        }
 
         final var votoComputado = Votacao
                 .builder()

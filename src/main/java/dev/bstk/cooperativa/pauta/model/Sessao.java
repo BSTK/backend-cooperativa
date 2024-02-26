@@ -38,7 +38,7 @@ public class Sessao implements Serializable {
     private Long id;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "PAUTA_ID", referencedColumnName = "ID")
     private Pauta pauta;
 

@@ -38,7 +38,7 @@ public class Votacao implements Serializable {
     private Long associadoId;
 
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "SESSAO_ID", referencedColumnName = "ID")
     private Sessao sessao;
 
