@@ -1,6 +1,7 @@
 package dev.bstk.cooperativa.pauta.api.request;
 
 import com.fasterxml.jackson.core.JsonParser;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -52,7 +53,7 @@ class VotoDeserializerTest {
 
         Assertions
            .assertThatThrownBy(() -> votoDeserializer.deserialize(parser, null))
-           .isInstanceOf(IllegalArgumentException.class)
+           .isInstanceOf(VotoInvalidoException.class)
            .hasMessage("Valor inválido! Apenas 'Sim' ou 'Não'");
     }
 }

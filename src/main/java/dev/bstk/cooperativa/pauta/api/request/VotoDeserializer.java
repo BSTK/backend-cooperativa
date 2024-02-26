@@ -3,6 +3,7 @@ package dev.bstk.cooperativa.pauta.api.request;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
+import dev.bstk.cooperativa.pauta.handlerexception.exception.VotoInvalidoException;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -19,7 +20,7 @@ public class VotoDeserializer extends JsonDeserializer<Boolean> {
                                 || (!SIM.equalsIgnoreCase(valorInformado) && !NAO.equalsIgnoreCase(valorInformado));
 
         if (valorInvalido) {
-            throw new IllegalArgumentException("Valor inválido! Apenas 'Sim' ou 'Não'");
+            throw new VotoInvalidoException("Valor inválido! Apenas 'Sim' ou 'Não'");
         }
 
         return SIM.equalsIgnoreCase(valorInformado);
