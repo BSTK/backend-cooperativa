@@ -2,7 +2,7 @@
 
 # Executando o projeto
 
-A forma mais rapida de você executar este projeto é através do **Docker** e **Docker Compose** que irá subir três contanainers:
+A forma mais rapida de você executar este projeto é através do **Docker** e **Docker Compose** que irá subir três containers:
 ```O projeto da Api Rest```, ```RabbitMq``` e ```Postgresql```.     
 
 Veja como é facil:
@@ -15,6 +15,8 @@ Veja como é facil:
 
 2 - Dentro do diretório do projeto ```backend-cooperativa```, execute o script ```start.sh```
 > ```cd ./backend-cooperativa```
+> 
+> IMPORTANTE: Execute esse script start.sh com um terminal Linux ou no Windows com o Git Bash
 > 
 > ```./start.sh```
 
