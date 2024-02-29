@@ -30,7 +30,7 @@ public class PautaResource {
     private final SessaoService sessaoService;
 
     @GetMapping("/{pautaId}/resultado")
-    public ResponseEntity<PautaResponse> ok(@PathVariable("pautaId") final Long pautaId) {
+    public ResponseEntity<PautaResponse> resultado(@PathVariable("pautaId") final Long pautaId) {
         final var pauta = pautaService.buscarPautaFinalizada(pautaId);
         final var pautaResponse = Mapper.to(pauta, PautaResponse.class);
 
